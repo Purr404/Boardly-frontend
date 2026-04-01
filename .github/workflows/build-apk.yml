@@ -1,7 +1,7 @@
 name: EAS Build Android
 
 on:
-  workflow_dispatch:  # manual trigger
+  workflow_dispatch:
 
 jobs:
   build:
@@ -14,19 +14,13 @@ jobs:
 
       - run: npm install
 
-      # Use the official Expo action which handles authentication with EXPO_TOKEN
-      - name: Setup Expo and EAS
-        uses: expo/expo-github-action@v8
-        with:
-          eas-version: latest
-          token: ${{ secrets.EXPO_TOKEN }}
-
-      # Create a minimal eas.json (required for EAS builds)
+      # Create a proper eas.json (local version source to avoid warnings)
       - name: Create eas.json
         run: |
           cat > eas.json <<EOF
           {
             "cli": {
+              "appVersionSource": "local",
               "version": ">= 10.0.0"
             },
             "build": {
@@ -39,6 +33,29 @@ jobs:
           }
           EOF
 
-      # Build the Android APK
+      # Extract project slug and owner from app.json
+      - name: Get project slug and owner
+        id: config
+        run: |
+          SLUG=$(node -p "require('./app.json').expo.slug")
+          OWNER=$(node -p "require('./app.json').expo.owner || '${EXPO_USERNAME}'")
+          echo "SLUG=$SLUG" >> $GITHUB_ENV
+          echo "OWNER=$OWNER" >> $GITHUB_ENV
+        env:
+          EXPO_USERNAME: ${{ secrets.EXPO_USERNAME }}
+
+      # Install EAS CLI
+      - name: Install EAS CLI
+        run: npm install -g eas-cli
+
+      # Initialize EAS project (non‑interactive)
+      - name: Initialize EAS
+        run: eas init --id ${{ env.OWNER }}/${{ env.SLUG }} --non-interactive
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      # Build the APK
       - name: Build Android APK
         run: eas build --platform android --profile preview --non-interactive
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
