@@ -1,9 +1,7 @@
-name: Build APK
+name: EAS Build Android
 
 on:
-  push:
-    branches: [ main ]
-  workflow_dispatch:
+  workflow_dispatch:  # manual trigger
 
 jobs:
   build:
@@ -14,8 +12,9 @@ jobs:
         with:
           node-version: 20
       - run: npm install
-      - run: npx expo export --platform android
-      - uses: actions/upload-artifact@v4
-        with:
-          name: app
-          path: dist/
+      - run: npm install -g eas-cli
+      - run: eas login --username ${{ secrets.EXPO_USERNAME }} --non-interactive
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      - run: eas build:configure   # creates eas.json (accept defaults)
+      - run: eas build --platform android --profile preview --non-interactive
