@@ -33,7 +33,7 @@ jobs:
           }
           EOF
 
-      # Extract project slug and owner from app.json
+      # Extract slug and owner from app.json
       - name: Get project slug and owner
         id: config
         run: |
