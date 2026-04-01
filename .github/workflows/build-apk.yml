@@ -11,11 +11,19 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: npm install
-      - run: npm install -g eas-cli
 
-      # Create a minimal eas.json to avoid interactive prompts
-      - run: |
+      - run: npm install
+
+      # Use the official Expo action which handles authentication with EXPO_TOKEN
+      - name: Setup Expo and EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      # Create a minimal eas.json (required for EAS builds)
+      - name: Create eas.json
+        run: |
           cat > eas.json <<EOF
           {
             "cli": {
@@ -31,7 +39,6 @@ jobs:
           }
           EOF
 
-      # Build using the token
-      - run: eas build --platform android --profile preview --non-interactive
-        env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      # Build the Android APK
+      - name: Build Android APK
+        run: eas build --platform android --profile preview --non-interactive
