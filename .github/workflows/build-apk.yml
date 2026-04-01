@@ -33,24 +33,13 @@ jobs:
           }
           EOF
 
-      # Extract slug and owner from app.json
-      - name: Get project slug and owner
-        id: config
-        run: |
-          SLUG=$(node -p "require('./app.json').expo.slug")
-          OWNER=$(node -p "require('./app.json').expo.owner || '${EXPO_USERNAME}'")
-          echo "SLUG=$SLUG" >> $GITHUB_ENV
-          echo "OWNER=$OWNER" >> $GITHUB_ENV
-        env:
-          EXPO_USERNAME: ${{ secrets.EXPO_USERNAME }}
-
       # Install EAS CLI
       - name: Install EAS CLI
         run: npm install -g eas-cli
 
-      # Initialize EAS project (non‑interactive)
+      # Initialize EAS project (reads owner and slug from app.json)
       - name: Initialize EAS
-        run: eas init --id ${{ env.OWNER }}/${{ env.SLUG }} --non-interactive
+        run: eas init --non-interactive
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
