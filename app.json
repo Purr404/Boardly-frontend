@@ -11,9 +11,6 @@
     },
     "android": {
       "package": "com.purr404.boardly"
-    },
-    "web": {
-      "favicon": "./assets/favicon.png"
     }
   }
 }
