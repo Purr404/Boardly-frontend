@@ -11,10 +11,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: 'npm'
 
       - run: npm install
 
-      # Create a proper eas.json (local version source)
       - name: Create eas.json
         run: |
           cat > eas.json <<EOF
@@ -33,17 +33,12 @@ jobs:
           }
           EOF
 
-      # Install EAS CLI
+      - name: Clean prebuild (regenerate native files)
+        run: npx expo prebuild --clean --platform android
+
       - name: Install EAS CLI
         run: npm install -g eas-cli
 
-      # Initialize EAS project – create if it doesn't exist
-      - name: Initialize EAS
-        run: eas init --force --non-interactive
-        env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-
-      # Build the APK
       - name: Build Android APK
         run: eas build --platform android --profile preview --non-interactive
         env:
