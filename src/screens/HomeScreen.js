@@ -21,11 +21,14 @@ export default function HomeScreen() {
       if (city) params.city = city;
       if (barangay) params.barangay = barangay;
       const response = await api.get('/rooms', { params });
-      // Ensure we always set an array
-      setRooms(Array.isArray(response.data) ? response.data : []);
+      let data = response.data;
+      if (!Array.isArray(data)) data = [];
+      // Filter out any null/undefined entries
+      const safeData = data.filter(item => item != null);
+      setRooms(safeData);
     } catch (error) {
       console.error(error);
-      setRooms([]); // fallback to empty array on error
+      setRooms([]);
     } finally {
       setLoading(false);
     }
@@ -55,10 +58,13 @@ export default function HomeScreen() {
         <ActivityIndicator size="large" color="#4CAF50" />
       ) : (
         <FlatList
-          data={rooms}           // now always an array
-          keyExtractor={(item) => item?.id?.toString() || Math.random().toString()}
-          renderItem={({ item }) => <RoomCard room={item} />}
-          ListEmptyComponent={<Text>No rooms found.</Text>}
+          data={rooms}
+          keyExtractor={(item, index) => (item?.id ? item.id.toString() : index.toString())}
+          renderItem={({ item }) => {
+            if (!item) return null;
+            return <RoomCard room={item} />;
+          }}
+          ListEmptyComponent={<Text style={styles.emptyText}>No rooms found.</Text>}
         />
       )}
     </View>
@@ -68,4 +74,5 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 16, backgroundColor: '#f5f5f5' },
   searchInput: { backgroundColor: 'white', borderRadius: 25, padding: 12, marginBottom: 12, fontSize: 16, borderWidth: 1, borderColor: '#ddd' },
+  emptyText: { textAlign: 'center', marginTop: 20, color: '#666' },
 });
