@@ -1,31 +1,21 @@
 import React from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
-import VerifiedBadge from './VerifiedBadge';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 
-export default function RoomCard({ room, onPress }) {
+export default function RoomCard({ room }) {
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress}>
-      {room.images && room.images[0] && (
-        <Image source={{ uri: `${api.defaults.baseURL.replace('/api', '')}${room.images[0]}` }} style={styles.image} />
-      )}
-      <View style={styles.info}>
-        <View style={styles.header}>
-          <Text style={styles.title}>{room.title}</Text>
-          <VerifiedBadge verified={room.owner.verifiedOwner} />
-        </View>
-        <Text style={styles.price}>₱{room.price}/month</Text>
-        <Text style={styles.location}>{room.barangay}, {room.city}</Text>
-      </View>
+    <TouchableOpacity style={styles.card}>
+      <Text style={styles.title}>{room.title}</Text>
+      <Text style={styles.price}>₱{room.price}/month</Text>
+      <Text style={styles.location}>{room.barangay}, {room.city}, {room.province}</Text>
+      {room.boosted && <Text style={styles.boosted}>⚡</Text>}
     </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
-  card: { flexDirection: 'row', padding: 12, borderWidth: 1, borderColor: '#eee', borderRadius: 8, marginBottom: 12, backgroundColor: '#fff' },
-  image: { width: 80, height: 80, borderRadius: 8, marginRight: 12 },
-  info: { flex: 1 },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  title: { fontSize: 16, fontWeight: 'bold', flex: 1 },
-  price: { color: '#4CAF50', fontWeight: 'bold', marginTop: 4 },
-  location: { fontSize: 12, color: '#666', marginTop: 4 },
+  card: { backgroundColor: 'white', borderRadius: 12, padding: 12, marginBottom: 12, elevation: 2 },
+  title: { fontSize: 16, fontWeight: 'bold' },
+  price: { color: '#4CAF50', fontWeight: 'bold', marginVertical: 4 },
+  location: { fontSize: 12, color: '#666' },
+  boosted: { fontSize: 10, color: 'gold', fontWeight: 'bold', marginTop: 4 },
 });
