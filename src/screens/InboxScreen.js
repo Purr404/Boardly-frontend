@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import api from '../services/api';
+import SafeFlatList from '../components/SafeFlatList';
 
 export default function InboxScreen({ navigation }) {
   const [conversations, setConversations] = useState([]);
@@ -35,26 +36,22 @@ export default function InboxScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <FlatList
+      <SafeFlatList
         data={conversations}
-        keyExtractor={(item, index) => (item?.id ? item.id.toString() : index.toString())}
-        renderItem={({ item }) => {
-          if (!item) return null;
-          return (
-            <TouchableOpacity
-              style={styles.conversationItem}
-              onPress={() => navigation.navigate('Chat', { conversationId: item.id, name: item.partnerName })}
-            >
-              <View style={styles.avatar}>
-                <Text style={styles.avatarText}>{item.partnerName?.charAt(0) || '?'}</Text>
-              </View>
-              <View style={styles.conversationInfo}>
-                <Text style={styles.partnerName}>{item.partnerName}</Text>
-                <Text style={styles.lastMessage} numberOfLines={1}>{item.lastMessage || 'No messages yet'}</Text>
-              </View>
-            </TouchableOpacity>
-          );
-        }}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            style={styles.conversationItem}
+            onPress={() => navigation.navigate('Chat', { conversationId: item.id, name: item.partnerName })}
+          >
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>{item.partnerName?.charAt(0) || '?'}</Text>
+            </View>
+            <View style={styles.conversationInfo}>
+              <Text style={styles.partnerName}>{item.partnerName}</Text>
+              <Text style={styles.lastMessage} numberOfLines={1}>{item.lastMessage || 'No messages yet'}</Text>
+            </View>
+          </TouchableOpacity>
+        )}
         ListEmptyComponent={<Text style={styles.emptyText}>No conversations yet.</Text>}
       />
     </View>
