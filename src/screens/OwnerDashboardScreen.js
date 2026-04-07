@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import SafeFlatList from '../components/SafeFlatList';
 
 export default function OwnerDashboardScreen({ navigation }) {
   const { user } = useAuth();
@@ -65,38 +66,30 @@ export default function OwnerDashboardScreen({ navigation }) {
       </TouchableOpacity>
 
       <Text style={styles.sectionTitle}>My Rooms</Text>
-      <FlatList
+      <SafeFlatList
         data={rooms}
-        keyExtractor={(item, index) => (item?.id ? item.id.toString() : index.toString())}
-        renderItem={({ item }) => {
-          if (!item) return null;
-          return (
-            <View style={styles.roomCard}>
-              <Text style={styles.roomTitle}>{item.title}</Text>
-              <Text>₱{item.price}/month</Text>
-            </View>
-          );
-        }}
+        renderItem={({ item }) => (
+          <View style={styles.roomCard}>
+            <Text style={styles.roomTitle}>{item.title}</Text>
+            <Text>₱{item.price}/month</Text>
+          </View>
+        )}
         ListEmptyComponent={<Text>No rooms posted yet.</Text>}
       />
 
       <Text style={styles.sectionTitle}>Pending Bookings</Text>
-      <FlatList
+      <SafeFlatList
         data={pendingBookings}
-        keyExtractor={(item, index) => (item?.id ? item.id.toString() : index.toString())}
-        renderItem={({ item }) => {
-          if (!item) return null;
-          return (
-            <View style={styles.bookingCard}>
-              <Text>Renter: {item.renter?.name || 'Unknown'}</Text>
-              <Text>Room: {item.slot?.room?.title || 'Unknown'}</Text>
-              <Text>Slot: {item.slot?.startTime ? new Date(item.slot.startTime).toLocaleString() : 'Unknown'}</Text>
-              <TouchableOpacity style={styles.confirmButton} onPress={() => confirmBooking(item.id)}>
-                <Text style={styles.buttonText}>Confirm</Text>
-              </TouchableOpacity>
-            </View>
-          );
-        }}
+        renderItem={({ item }) => (
+          <View style={styles.bookingCard}>
+            <Text>Renter: {item.renter?.name || 'Unknown'}</Text>
+            <Text>Room: {item.slot?.room?.title || 'Unknown'}</Text>
+            <Text>Slot: {item.slot?.startTime ? new Date(item.slot.startTime).toLocaleString() : 'Unknown'}</Text>
+            <TouchableOpacity style={styles.confirmButton} onPress={() => confirmBooking(item.id)}>
+              <Text style={styles.buttonText}>Confirm</Text>
+            </TouchableOpacity>
+          </View>
+        )}
         ListEmptyComponent={<Text>No pending bookings.</Text>}
       />
     </View>
