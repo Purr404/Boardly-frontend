@@ -21,9 +21,11 @@ export default function HomeScreen() {
       if (city) params.city = city;
       if (barangay) params.barangay = barangay;
       const response = await api.get('/rooms', { params });
-      setRooms(response.data);
+      // Ensure we always set an array
+      setRooms(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error(error);
+      setRooms([]); // fallback to empty array on error
     } finally {
       setLoading(false);
     }
@@ -53,9 +55,10 @@ export default function HomeScreen() {
         <ActivityIndicator size="large" color="#4CAF50" />
       ) : (
         <FlatList
-          data={rooms}
-          keyExtractor={item => item.id.toString()}
+          data={rooms}           // now always an array
+          keyExtractor={(item) => item?.id?.toString() || Math.random().toString()}
           renderItem={({ item }) => <RoomCard room={item} />}
+          ListEmptyComponent={<Text>No rooms found.</Text>}
         />
       )}
     </View>
