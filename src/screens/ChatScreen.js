@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
 import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 export default function ChatScreen({ route }) {
   const { conversationId, name } = route.params;
+  const { user } = useAuth();
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
   const flatListRef = useRef();
@@ -11,9 +13,10 @@ export default function ChatScreen({ route }) {
   const fetchMessages = async () => {
     try {
       const response = await api.get(`/messages/${conversationId}`);
-      setMessages(response.data);
+      setMessages(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error(error);
+      setMessages([]);
     }
   };
 
@@ -30,21 +33,27 @@ export default function ChatScreen({ route }) {
 
   useEffect(() => {
     fetchMessages();
-    const interval = setInterval(fetchMessages, 3000); // poll every 3s – replace with WebSocket for real‑time
+    const interval = setInterval(fetchMessages, 3000);
     return () => clearInterval(interval);
   }, []);
+
+  const renderItem = ({ item }) => {
+    if (!item) return null;
+    const isSent = item.senderId === user?.id;
+    return (
+      <View style={[styles.messageBubble, isSent ? styles.sent : styles.received]}>
+        <Text style={styles.messageText}>{item.content}</Text>
+      </View>
+    );
+  };
 
   return (
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <FlatList
         ref={flatListRef}
         data={messages}
-        keyExtractor={item => item.id.toString()}
-        renderItem={({ item }) => (
-          <View style={[styles.messageBubble, item.senderId === 'me' ? styles.sent : styles.received]}>
-            <Text style={styles.messageText}>{item.content}</Text>
-          </View>
-        )}
+        keyExtractor={(item, index) => (item?.id ? item.id.toString() : index.toString())}
+        renderItem={renderItem}
         onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
       />
       <View style={styles.inputContainer}>
