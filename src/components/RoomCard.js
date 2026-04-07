@@ -2,12 +2,13 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 
 export default function RoomCard({ room }) {
+  if (!room) return null;
   return (
     <TouchableOpacity style={styles.card}>
-      <Text style={styles.title}>{room.title}</Text>
-      <Text style={styles.price}>₱{room.price}/month</Text>
-      <Text style={styles.location}>{room.barangay}, {room.city}, {room.province}</Text>
-      {room.boosted && <Text style={styles.boosted}>⚡</Text>}
+      <Text style={styles.title}>{room.title || 'No title'}</Text>
+      <Text style={styles.price}>₱{room.price || 0}/month</Text>
+      <Text style={styles.location}>{room.barangay || ''}, {room.city || ''}, {room.province || ''}</Text>
+      {room.boosted && <Text style={styles.boosted}>⚡ Boosted</Text>}
     </TouchableOpacity>
   );
 }
