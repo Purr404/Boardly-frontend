@@ -1,4 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
+import { Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../services/api';
 
@@ -25,6 +26,10 @@ export const AuthProvider = ({ children }) => {
   const login = async (phone, password) => {
     const email = phone.replace(/\D/g, '') + '@phone.boardly';
     const response = await api.post('/auth/login', { email, password });
+    
+    // Debug: show the server response
+    Alert.alert('Debug Response', JSON.stringify(response.data, null, 2));
+    
     const { token, user } = response.data;
     await AsyncStorage.setItem('token', token);
     await AsyncStorage.setItem('user', JSON.stringify(user));
