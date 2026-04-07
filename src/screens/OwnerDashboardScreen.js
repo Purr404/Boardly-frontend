@@ -18,18 +18,20 @@ export default function OwnerDashboardScreen({ navigation }) {
   const fetchRooms = async () => {
     try {
       const res = await api.get('/rooms?owner=true');
-      setRooms(res.data);
+      setRooms(Array.isArray(res.data) ? res.data : []);
     } catch (error) {
       console.error(error);
+      setRooms([]);
     }
   };
 
   const fetchBookings = async () => {
     try {
       const res = await api.get('/bookings/owner');
-      setBookings(res.data);
+      setBookings(Array.isArray(res.data) ? res.data : []);
     } catch (error) {
       console.error(error);
+      setBookings([]);
     }
   };
 
@@ -54,6 +56,8 @@ export default function OwnerDashboardScreen({ navigation }) {
     );
   }
 
+  const pendingBookings = Array.isArray(bookings) ? bookings.filter(b => b.status === 'pending') : [];
+
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.addButton} onPress={() => navigation.navigate('PostListing')}>
@@ -63,29 +67,37 @@ export default function OwnerDashboardScreen({ navigation }) {
       <Text style={styles.sectionTitle}>My Rooms</Text>
       <FlatList
         data={rooms}
-        keyExtractor={item => item.id.toString()}
-        renderItem={({ item }) => (
-          <View style={styles.roomCard}>
-            <Text style={styles.roomTitle}>{item.title}</Text>
-            <Text>₱{item.price}/month</Text>
-          </View>
-        )}
+        keyExtractor={(item, index) => (item?.id ? item.id.toString() : index.toString())}
+        renderItem={({ item }) => {
+          if (!item) return null;
+          return (
+            <View style={styles.roomCard}>
+              <Text style={styles.roomTitle}>{item.title}</Text>
+              <Text>₱{item.price}/month</Text>
+            </View>
+          );
+        }}
+        ListEmptyComponent={<Text>No rooms posted yet.</Text>}
       />
 
       <Text style={styles.sectionTitle}>Pending Bookings</Text>
       <FlatList
-        data={bookings.filter(b => b.status === 'pending')}
-        keyExtractor={item => item.id.toString()}
-        renderItem={({ item }) => (
-          <View style={styles.bookingCard}>
-            <Text>Renter: {item.renter.name}</Text>
-            <Text>Room: {item.slot.room.title}</Text>
-            <Text>Slot: {new Date(item.slot.startTime).toLocaleString()}</Text>
-            <TouchableOpacity style={styles.confirmButton} onPress={() => confirmBooking(item.id)}>
-              <Text style={styles.buttonText}>Confirm</Text>
-            </TouchableOpacity>
-          </View>
-        )}
+        data={pendingBookings}
+        keyExtractor={(item, index) => (item?.id ? item.id.toString() : index.toString())}
+        renderItem={({ item }) => {
+          if (!item) return null;
+          return (
+            <View style={styles.bookingCard}>
+              <Text>Renter: {item.renter?.name || 'Unknown'}</Text>
+              <Text>Room: {item.slot?.room?.title || 'Unknown'}</Text>
+              <Text>Slot: {item.slot?.startTime ? new Date(item.slot.startTime).toLocaleString() : 'Unknown'}</Text>
+              <TouchableOpacity style={styles.confirmButton} onPress={() => confirmBooking(item.id)}>
+                <Text style={styles.buttonText}>Confirm</Text>
+              </TouchableOpacity>
+            </View>
+          );
+        }}
+        ListEmptyComponent={<Text>No pending bookings.</Text>}
       />
     </View>
   );
