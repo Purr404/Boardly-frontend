@@ -22,7 +22,8 @@ export const AuthProvider = ({ children }) => {
     loadStoredData();
   }, []);
 
-  const login = async (email, password) => {
+  const login = async (phone, password) => {
+    const email = phone.replace(/\D/g, '') + '@phone.boardly';
     const response = await api.post('/auth/login', { email, password });
     const { token, user } = response.data;
     await AsyncStorage.setItem('token', token);
