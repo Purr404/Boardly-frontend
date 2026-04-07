@@ -14,6 +14,9 @@ const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
 function MainTabs() {
+  console.log('HomeScreen:', HomeScreen);
+  console.log('InboxScreen:', InboxScreen);
+  console.log('ProfileScreen:', ProfileScreen);
   return (
     <Tab.Navigator>
       <Tab.Screen name="Home" component={HomeScreen} />
