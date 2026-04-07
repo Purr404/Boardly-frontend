@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import api from '../services/api';
 import RoomCard from '../components/RoomCard';
 import LocationPicker from '../components/LocationPicker';
+import SafeFlatList from '../components/SafeFlatList';
 
 export default function HomeScreen() {
   const [rooms, setRooms] = useState([]);
@@ -21,11 +22,8 @@ export default function HomeScreen() {
       if (city) params.city = city;
       if (barangay) params.barangay = barangay;
       const response = await api.get('/rooms', { params });
-      let data = response.data;
-      if (!Array.isArray(data)) data = [];
-      // Filter out any null/undefined entries
-      const safeData = data.filter(item => item != null);
-      setRooms(safeData);
+      const data = response.data;
+      setRooms(Array.isArray(data) ? data.filter(item => item != null) : []);
     } catch (error) {
       console.error(error);
       setRooms([]);
@@ -57,13 +55,9 @@ export default function HomeScreen() {
       {loading ? (
         <ActivityIndicator size="large" color="#4CAF50" />
       ) : (
-        <FlatList
+        <SafeFlatList
           data={rooms}
-          keyExtractor={(item, index) => (item?.id ? item.id.toString() : index.toString())}
-          renderItem={({ item }) => {
-            if (!item) return null;
-            return <RoomCard room={item} />;
-          }}
+          renderItem={({ item }) => <RoomCard room={item} />}
           ListEmptyComponent={<Text style={styles.emptyText}>No rooms found.</Text>}
         />
       )}
