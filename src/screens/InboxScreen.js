@@ -9,10 +9,12 @@ export default function InboxScreen({ navigation }) {
   const fetchConversations = async () => {
     try {
       const response = await api.get('/conversations');
-      // Ensure we always set an array
-      setConversations(Array.isArray(response.data) ? response.data : []);
+      let data = response.data;
+      if (!Array.isArray(data)) data = [];
+      const safeData = data.filter(item => item != null);
+      setConversations(safeData);
     } catch (error) {
-      console.error('Failed to fetch conversations:', error);
+      console.error(error);
       setConversations([]);
     } finally {
       setLoading(false);
@@ -21,7 +23,7 @@ export default function InboxScreen({ navigation }) {
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', fetchConversations);
-    fetchConversations(); // initial load
+    fetchConversations();
     return unsubscribe;
   }, [navigation]);
 
@@ -37,21 +39,24 @@ export default function InboxScreen({ navigation }) {
     <View style={styles.container}>
       <FlatList
         data={conversations}
-        keyExtractor={(item) => item.id?.toString() || Math.random().toString()}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={styles.conversationItem}
-            onPress={() => navigation.navigate('Chat', { conversationId: item.id, name: item.partnerName })}
-          >
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>{item.partnerName?.charAt(0) || '?'}</Text>
-            </View>
-            <View style={styles.conversationInfo}>
-              <Text style={styles.partnerName}>{item.partnerName}</Text>
-              <Text style={styles.lastMessage} numberOfLines={1}>{item.lastMessage || 'No messages yet'}</Text>
-            </View>
-          </TouchableOpacity>
-        )}
+        keyExtractor={(item, index) => (item?.id ? item.id.toString() : index.toString())}
+        renderItem={({ item }) => {
+          if (!item) return null;
+          return (
+            <TouchableOpacity
+              style={styles.conversationItem}
+              onPress={() => navigation.navigate('Chat', { conversationId: item.id, name: item.partnerName })}
+            >
+              <View style={styles.avatar}>
+                <Text style={styles.avatarText}>{item.partnerName?.charAt(0) || '?'}</Text>
+              </View>
+              <View style={styles.conversationInfo}>
+                <Text style={styles.partnerName}>{item.partnerName}</Text>
+                <Text style={styles.lastMessage} numberOfLines={1}>{item.lastMessage || 'No messages yet'}</Text>
+              </View>
+            </TouchableOpacity>
+          );
+        }}
         ListEmptyComponent={<Text style={styles.emptyText}>No conversations yet.</Text>}
       />
     </View>
