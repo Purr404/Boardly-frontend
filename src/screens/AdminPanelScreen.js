@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import SafeFlatList from '../components/SafeFlatList';
 
 export default function AdminPanelScreen() {
   const { user } = useAuth();
@@ -76,54 +77,46 @@ export default function AdminPanelScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Pending Documents</Text>
-      <FlatList
+      <SafeFlatList
         data={documents}
-        keyExtractor={(item, index) => (item?.id ? item.id.toString() : index.toString())}
-        renderItem={({ item }) => {
-          if (!item) return null;
-          return (
-            <View style={styles.card}>
-              <Text>User: {item.user?.name} ({item.user?.email})</Text>
-              <Text>Type: {item.type}</Text>
-              <Text>Status: {item.status}</Text>
-              <View style={styles.buttonRow}>
-                <TouchableOpacity style={styles.approveButton} onPress={() => handleApprove(item.id)}>
-                  <Text style={styles.buttonText}>Approve</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.rejectButton} onPress={() => handleReject(item.id)}>
-                  <Text style={styles.buttonText}>Reject</Text>
-                </TouchableOpacity>
-              </View>
+        renderItem={({ item }) => (
+          <View style={styles.card}>
+            <Text>User: {item.user?.name} ({item.user?.email})</Text>
+            <Text>Type: {item.type}</Text>
+            <Text>Status: {item.status}</Text>
+            <View style={styles.buttonRow}>
+              <TouchableOpacity style={styles.approveButton} onPress={() => handleApprove(item.id)}>
+                <Text style={styles.buttonText}>Approve</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.rejectButton} onPress={() => handleReject(item.id)}>
+                <Text style={styles.buttonText}>Reject</Text>
+              </TouchableOpacity>
             </View>
-          );
-        }}
+          </View>
+        )}
         ListEmptyComponent={<Text>No pending documents.</Text>}
       />
 
       <Text style={styles.title}>Reports</Text>
-      <FlatList
+      <SafeFlatList
         data={reports}
-        keyExtractor={(item, index) => (item?.id ? item.id.toString() : index.toString())}
-        renderItem={({ item }) => {
-          if (!item) return null;
-          return (
-            <View style={styles.card}>
-              <Text>Room: {item.room?.title}</Text>
-              <Text>Reason: {item.reason}</Text>
-              <Text>Status: {item.status}</Text>
-              {item.status === 'pending' && (
-                <View style={styles.buttonRow}>
-                  <TouchableOpacity style={styles.resolveButton} onPress={() => handleResolveReport(item.id, 'delete_room')}>
-                    <Text style={styles.buttonText}>Delete Room</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={styles.resolveButton} onPress={() => handleResolveReport(item.id, 'ignore')}>
-                    <Text style={styles.buttonText}>Ignore</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
-            </View>
-          );
-        }}
+        renderItem={({ item }) => (
+          <View style={styles.card}>
+            <Text>Room: {item.room?.title}</Text>
+            <Text>Reason: {item.reason}</Text>
+            <Text>Status: {item.status}</Text>
+            {item.status === 'pending' && (
+              <View style={styles.buttonRow}>
+                <TouchableOpacity style={styles.resolveButton} onPress={() => handleResolveReport(item.id, 'delete_room')}>
+                  <Text style={styles.buttonText}>Delete Room</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.resolveButton} onPress={() => handleResolveReport(item.id, 'ignore')}>
+                  <Text style={styles.buttonText}>Ignore</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+        )}
         ListEmptyComponent={<Text>No reports.</Text>}
       />
     </View>
