@@ -9,10 +9,8 @@ export default function InboxScreen({ navigation }) {
   const fetchConversations = async () => {
     try {
       const response = await api.get('/conversations');
-      let data = response.data;
-      if (!Array.isArray(data)) data = [];
-      const safeData = data.filter(item => item != null);
-      setConversations(safeData);
+      const data = response.data;
+      setConversations(Array.isArray(data) ? data.filter(item => item != null) : []);
     } catch (error) {
       console.error(error);
       setConversations([]);
