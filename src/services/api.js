@@ -1,7 +1,7 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// ⚠️ CHANGE THIS TO YOUR RAILWAY BACKEND URL
+// Replace with your actual Railway backend URL
 const API_BASE_URL = 'https://boardly-production-03e0.up.railway.app/api';
 
 const api = axios.create({
