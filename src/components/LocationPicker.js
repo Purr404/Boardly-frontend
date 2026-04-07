@@ -1,11 +1,12 @@
 import React from 'react';
 import { View, Text, Picker, StyleSheet } from 'react-native';
-import locationData from '../utils/locationData';
+import { locationData } from '../utils/locationData';  // named import
 
 export default function LocationPicker({ province, city, barangay, onProvinceChange, onCityChange, onBarangayChange }) {
-  const provinces = locationData.provinces;
-  const cities = province ? locationData.cities[province] || [] : [];
-  const barangays = city ? locationData.barangays[city] || [] : [];
+  // Safety: fallback to empty arrays if data is missing
+  const provinces = locationData?.provinces || [];
+  const cities = (province && locationData?.cities?.[province]) || [];
+  const barangays = (city && locationData?.barangays?.[city]) || [];
 
   return (
     <View>
