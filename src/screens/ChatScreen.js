@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import SafeFlatList from '../components/SafeFlatList';
 
 export default function ChatScreen({ route }) {
   const { conversationId, name } = route.params;
@@ -37,23 +38,19 @@ export default function ChatScreen({ route }) {
     return () => clearInterval(interval);
   }, []);
 
-  const renderItem = ({ item }) => {
-    if (!item) return null;
-    const isSent = item.senderId === user?.id;
-    return (
-      <View style={[styles.messageBubble, isSent ? styles.sent : styles.received]}>
-        <Text style={styles.messageText}>{item.content}</Text>
-      </View>
-    );
-  };
-
   return (
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <FlatList
+      <SafeFlatList
         ref={flatListRef}
         data={messages}
-        keyExtractor={(item, index) => (item?.id ? item.id.toString() : index.toString())}
-        renderItem={renderItem}
+        renderItem={({ item }) => {
+          const isSent = item.senderId === user?.id;
+          return (
+            <View style={[styles.messageBubble, isSent ? styles.sent : styles.received]}>
+              <Text style={styles.messageText}>{item.content}</Text>
+            </View>
+          );
+        }}
         onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
       />
       <View style={styles.inputContainer}>
