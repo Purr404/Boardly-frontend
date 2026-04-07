@@ -14,8 +14,20 @@ export default function LoginScreen({ navigation }) {
     }
     try {
       await login(phone, password);
+      // If login succeeds, navigation will automatically go to MainTabs (AppNavigator handles it)
     } catch (error) {
-      Alert.alert('Error', error.response?.data?.message || 'Login failed');
+      let errorMsg = 'Login failed';
+      if (error.response) {
+        // Server responded with a status other than 2xx
+        errorMsg = `Server error (${error.response.status}): ${JSON.stringify(error.response.data)}`;
+      } else if (error.request) {
+        // Request was made but no response received
+        errorMsg = 'No response from server. Check your internet connection.';
+      } else {
+        // Something else happened
+        errorMsg = error.message;
+      }
+      Alert.alert('Login Failed', errorMsg);
     }
   };
 
