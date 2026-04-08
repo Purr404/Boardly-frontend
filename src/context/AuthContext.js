@@ -1,5 +1,4 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../services/api';
 
@@ -26,10 +25,6 @@ export const AuthProvider = ({ children }) => {
   const login = async (phone, password) => {
     const email = phone.replace(/\D/g, '') + '@phone.boardly';
     const response = await api.post('/auth/login', { email, password });
-    
-    // Debug: show the server response
-    Alert.alert('Debug Response', JSON.stringify(response.data, null, 2));
-    
     const { token, user } = response.data;
     await AsyncStorage.setItem('token', token);
     await AsyncStorage.setItem('user', JSON.stringify(user));
@@ -44,8 +39,14 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
+  // Update user in context and AsyncStorage (used after profile edit)
+  const updateUser = async (updatedUser) => {
+    setUser(updatedUser);
+    await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );
