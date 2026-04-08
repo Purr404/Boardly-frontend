@@ -18,27 +18,21 @@ export default function ProfileScreen() {
 
   const pickImage = async () => {
     try {
-      Alert.alert('Debug', '1. Function called');
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      Alert.alert('Debug', `2. Permission status: ${status}`);
       if (status !== 'granted') {
         Alert.alert('Permission needed', 'Please allow access to your photos');
         return;
       }
-      Alert.alert('Debug', '3. Launching image picker...');
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.8,
       });
-      Alert.alert('Debug', `4. Picker returned, canceled: ${result.canceled}`);
       if (!result.canceled) {
-        const imageUri = result.assets[0].uri;
-        Alert.alert('Debug', `5. Image URI: ${imageUri}`);
         setUploading(true);
+        const imageUri = result.assets[0].uri;
         const formData = new FormData();
-        // @ts-ignore
+        // @ts-ignore - React Native supports this format
         formData.append('file', {
           uri: imageUri,
           type: 'image/jpeg',
@@ -46,26 +40,21 @@ export default function ProfileScreen() {
         });
         formData.append('upload_preset', UPLOAD_PRESET);
         formData.append('folder', 'boardly_avatars');
-        Alert.alert('Debug', '6. Sending to Cloudinary...');
+
         const cloudinaryResponse = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
           method: 'POST',
           body: formData,
         });
         const cloudinaryData = await cloudinaryResponse.json();
-        Alert.alert('Debug', `7. Cloudinary response status: ${cloudinaryResponse.status}`);
         if (!cloudinaryResponse.ok) {
           throw new Error(cloudinaryData.error?.message || 'Cloudinary upload failed');
         }
         const imageUrl = cloudinaryData.secure_url;
-        Alert.alert('Debug', `8. Uploaded URL: ${imageUrl}`);
-        const profileResponse = await api.put('/user/profile', { avatar: imageUrl });
-        Alert.alert('Debug', `9. Backend response status: ${profileResponse.status}`);
-        if (!profileResponse.ok) throw new Error('Backend save failed');
+
+        await api.put('/user/profile', { avatar: imageUrl });
         updateUser({ ...user, avatar: imageUrl });
         setAvatar(imageUrl);
         Alert.alert('Success', 'Profile picture updated');
-      } else {
-        Alert.alert('Cancelled', 'No image selected');
       }
     } catch (error) {
       Alert.alert('Error', error.message);
