@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
 import api from '../services/api';
-import SafeFlatList from '../components/SafeFlatList';
 
 export default function InboxScreen({ navigation }) {
   const [conversations, setConversations] = useState([]);
@@ -10,10 +9,8 @@ export default function InboxScreen({ navigation }) {
   const fetchConversations = async () => {
     try {
       const response = await api.get('/conversations');
-      const data = response.data;
-      setConversations(Array.isArray(data) ? data.filter(item => item != null) : []);
+      setConversations(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
-      console.error(error);
       setConversations([]);
     } finally {
       setLoading(false);
@@ -36,8 +33,9 @@ export default function InboxScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <SafeFlatList
+      <FlatList
         data={conversations}
+        keyExtractor={(item, index) => (item?.id ? item.id.toString() : index.toString())}
         renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.conversationItem}
