@@ -5,8 +5,8 @@ import * as ImagePicker from 'expo-image-picker';
 import api from '../services/api';
 
 // Cloudinary configuration – replace with your own
-const CLOUD_NAME = 'YOUR_CLOUD_NAME';        // e.g., 'dfabc1234'
-const UPLOAD_PRESET = 'boardly_avatars';     // unsigned preset you created
+const CLOUD_NAME = 'dpqplua14';
+const UPLOAD_PRESET = 'boardly_avatars'; 
 
 export default function ProfileScreen() {
   const { user, updateUser, logout } = useAuth();
