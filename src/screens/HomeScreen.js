@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
 import api from '../services/api';
+import RoomCard from '../components/RoomCard';
 
 export default function HomeScreen() {
   const [rooms, setRooms] = useState([]);
@@ -34,7 +35,7 @@ export default function HomeScreen() {
       <FlatList
         data={rooms}
         keyExtractor={(item, index) => (item?.id ? item.id.toString() : index.toString())}
-        renderItem={({ item }) => <Text>{item.title}</Text>}
+        renderItem={({ item }) => <RoomCard room={item} onPress={() => {}} />}
         ListEmptyComponent={<Text>No rooms found.</Text>}
       />
     </View>
