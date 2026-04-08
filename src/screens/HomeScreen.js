@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
 import api from '../services/api';
 import RoomCard from '../components/RoomCard';
 import LocationPicker from '../components/LocationPicker';
-import SafeFlatList from '../components/SafeFlatList';
 
 export default function HomeScreen() {
   const [rooms, setRooms] = useState([]);
@@ -54,8 +53,9 @@ export default function HomeScreen() {
       {loading ? (
         <ActivityIndicator size="large" color="#4CAF50" />
       ) : (
-        <SafeFlatList
+        <FlatList
           data={rooms}
+          keyExtractor={(item, index) => (item?.id ? item.id.toString() : index.toString())}
           renderItem={({ item }) => <RoomCard room={item} />}
           ListEmptyComponent={<Text style={styles.emptyText}>No rooms found.</Text>}
         />
