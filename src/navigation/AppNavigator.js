@@ -23,14 +23,18 @@ export default function AppNavigator() {
 
   if (loading) return null;
 
-  if (!user) {
-    return (
-      <Stack.Navigator>
-        <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen name="Register" component={RegisterScreen} />
-      </Stack.Navigator>
-    );
-  }
-
-  return <MainTabs />;
+  return (
+    <Stack.Navigator>
+      {!user ? (
+        <>
+          <Stack.Screen name="Login" component={LoginScreen} />
+          <Stack.Screen name="Register" component={RegisterScreen} />
+        </>
+      ) : (
+        <>
+          <Stack.Screen name="Main" component={MainTabs} options={{ headerShown: false }} />
+        </>
+      )}
+    </Stack.Navigator>
+  );
 }
