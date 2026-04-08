@@ -1,72 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
-import api from '../services/api';
-import RoomCard from '../components/RoomCard';
-import LocationPicker from '../components/LocationPicker';
-import SafeFlatList from '../components/SafeFlatList';
+import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
 
 export default function HomeScreen() {
-  const [rooms, setRooms] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
-  const [province, setProvince] = useState('');
-  const [city, setCity] = useState('');
-  const [barangay, setBarangay] = useState('');
-
-  const fetchRooms = async () => {
-    setLoading(true);
-    try {
-      const params = {};
-      if (search) params.search = search;
-      if (province) params.province = province;
-      if (city) params.city = city;
-      if (barangay) params.barangay = barangay;
-      const response = await api.get('/rooms', { params });
-      const data = response.data;
-      setRooms(Array.isArray(data) ? data.filter(item => item != null) : []);
-    } catch (error) {
-      console.error(error);
-      setRooms([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchRooms();
-  }, [search, province, city, barangay]);
-
   return (
     <View style={styles.container}>
-      <TextInput
-        style={styles.searchInput}
-        placeholder="Search by title or location"
-        value={search}
-        onChangeText={setSearch}
-      />
-      <LocationPicker
-        province={province}
-        city={city}
-        barangay={barangay}
-        onProvinceChange={setProvince}
-        onCityChange={setCity}
-        onBarangayChange={setBarangay}
-      />
-      {loading ? (
-        <ActivityIndicator size="large" color="#4CAF50" />
-      ) : (
-        <SafeFlatList
-          data={rooms}
-          renderItem={({ item }) => <RoomCard room={item} />}
-          ListEmptyComponent={<Text style={styles.emptyText}>No rooms found.</Text>}
-        />
-      )}
+      <Text>Home Screen – Test</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, backgroundColor: '#f5f5f5' },
-  searchInput: { backgroundColor: 'white', borderRadius: 25, padding: 12, marginBottom: 12, fontSize: 16, borderWidth: 1, borderColor: '#ddd' },
-  emptyText: { textAlign: 'center', marginTop: 20, color: '#666' },
+  container: { flex: 1, justifyContent: 'center', alignItems: 'center' },
 });
