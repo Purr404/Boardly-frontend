@@ -31,8 +31,10 @@ export default function ProfileScreen() {
     if (!result.canceled) {
       setUploading(true);
       const imageUri = result.assets[0].uri;
+      
+      // Create FormData
       const formData = new FormData();
-      // @ts-ignore
+      // Append file – use a string for the URI, and specify name and type in a different way
       formData.append('file', {
         uri: imageUri,
         type: 'image/jpeg',
@@ -40,20 +42,24 @@ export default function ProfileScreen() {
       });
       formData.append('upload_preset', 'boardly_avatars');
       
-      // Replace with your actual cloud name
-      const cloudName = 'dpqplua14'; // e.g., 'd9y2s8m5'
-      const url = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
+      // Optionally, remove the folder parameter if it causes issues
+      // formData.append('folder', 'boardly_avatars');
       
-      const cloudinaryResponse = await fetch(url, {
+      const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
         method: 'POST',
         body: formData,
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'multipart/form-data',
+        },
       });
-      const cloudinaryData = await cloudinaryResponse.json();
-      if (!cloudinaryResponse.ok) {
-        throw new Error(cloudinaryData.error?.message || `HTTP ${cloudinaryResponse.status}`);
+      
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error?.message || `Upload failed: ${response.status}`);
       }
-      const imageUrl = cloudinaryData.secure_url;
-
+      
+      const imageUrl = data.secure_url;
       await api.put('/user/profile', { avatar: imageUrl });
       updateUser({ ...user, avatar: imageUrl });
       setAvatar(imageUrl);
