@@ -1,30 +1,38 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Modal, FlatList, StyleSheet } from 'react-native';
+import { locationData } from '../utils/locationData';
 
 export default function LocationPicker({ province, city, barangay, onProvinceChange, onCityChange, onBarangayChange }) {
   const [modalVisible, setModalVisible] = useState(false);
   const [activeField, setActiveField] = useState(null);
   const [options, setOptions] = useState([]);
 
-  // Hardcoded data for now (replace with locationData later)
-  const provinces = ['Zamboanga del Sur'];
-  const cities = ['Pagadian City', 'Aurora', 'Bayog', 'Dimataling', 'Dinas', 'Dumalinao', 'Dumingag', 'Guipos', 'Josefina', 'Kumalarang', 'Labangan', 'Lakewood', 'Lapuyan', 'Mahayag', 'Margosatubig', 'Midsalip', 'Molave', 'Pitogo', 'Ramon Magsaysay', 'San Miguel', 'San Pablo', 'Sominot', 'Tabina', 'Tambulig', 'Tigbao', 'Tukuran', 'Vincenzo A. Sagun'];
-  const barangays = ['Barangay 1', 'Barangay 2', 'Barangay 3']; // Replace with full list later
+  const provinces = locationData?.provinces || [];
+  const getCities = (prov) => (prov && locationData?.cities?.[prov]) || [];
+  const getBarangays = (cityName) => (cityName && locationData?.barangays?.[cityName]) || [];
 
-  const openPicker = (field, data) => {
+  const openPicker = (field) => {
+    if (field === 'province') {
+      setOptions(provinces);
+    } else if (field === 'city') {
+      if (!province) return;
+      setOptions(getCities(province));
+    } else if (field === 'barangay') {
+      if (!city) return;
+      setOptions(getBarangays(city));
+    }
     setActiveField(field);
-    setOptions(data);
     setModalVisible(true);
   };
 
   const selectOption = (value) => {
     if (activeField === 'province') {
       onProvinceChange(value);
-      onCityChange(''); // reset city
-      onBarangayChange(''); // reset barangay
+      onCityChange('');
+      onBarangayChange('');
     } else if (activeField === 'city') {
       onCityChange(value);
-      onBarangayChange(''); // reset barangay
+      onBarangayChange('');
     } else if (activeField === 'barangay') {
       onBarangayChange(value);
     }
@@ -35,17 +43,17 @@ export default function LocationPicker({ province, city, barangay, onProvinceCha
   return (
     <View>
       <Text style={styles.label}>Province</Text>
-      <TouchableOpacity style={styles.pickerButton} onPress={() => openPicker('province', provinces)}>
+      <TouchableOpacity style={styles.pickerButton} onPress={() => openPicker('province')}>
         <Text style={styles.pickerButtonText}>{province || 'Select Province'}</Text>
       </TouchableOpacity>
 
       <Text style={styles.label}>City/Municipality</Text>
-      <TouchableOpacity style={styles.pickerButton} onPress={() => province ? openPicker('city', cities) : null}>
+      <TouchableOpacity style={styles.pickerButton} onPress={() => openPicker('city')}>
         <Text style={styles.pickerButtonText}>{city || (province ? 'Select City' : 'Select province first')}</Text>
       </TouchableOpacity>
 
       <Text style={styles.label}>Barangay</Text>
-      <TouchableOpacity style={styles.pickerButton} onPress={() => city ? openPicker('barangay', barangays) : null}>
+      <TouchableOpacity style={styles.pickerButton} onPress={() => openPicker('barangay')}>
         <Text style={styles.pickerButtonText}>{barangay || (city ? 'Select Barangay' : 'Select city first')}</Text>
       </TouchableOpacity>
 
