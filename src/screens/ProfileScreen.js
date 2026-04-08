@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image, ActivityIndicator } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import * as ImagePicker from 'expo-image-picker';
-import * as FileSystem from 'expo-file-system';
 import api from '../services/api';
 
 // Cloudinary configuration
@@ -28,21 +27,26 @@ export default function ProfileScreen() {
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.8,
-      base64: false, // we'll read the file manually
     });
     if (!result.canceled) {
       setUploading(true);
       const imageUri = result.assets[0].uri;
-      // Read file as base64
-      const base64 = await FileSystem.readAsStringAsync(imageUri, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
+      
+      // Get the file extension and MIME type
+      const filename = imageUri.split('/').pop();
+      const match = /\.(\w+)$/.exec(filename);
+      const type = match ? `image/${match[1]}` : 'image/jpeg';
+      
       const formData = new FormData();
-      formData.append('file', `data:image/jpeg;base64,${base64}`);
+      // Append file as an object
+      formData.append('file', {
+        uri: imageUri,
+        name: filename,
+        type: type,
+      });
       formData.append('upload_preset', 'boardly_avatars');
-      // Do not append folder
-
-      const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
+      
+      const response = await fetch(`https://api.cloudinary.com/v1_1/dpqplua14/image/upload`, {
         method: 'POST',
         body: formData,
       });
