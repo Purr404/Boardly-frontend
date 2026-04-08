@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image, ActivityIndicator } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system';
 import api from '../services/api';
 
 // Cloudinary configuration
@@ -27,38 +28,28 @@ export default function ProfileScreen() {
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.8,
+      base64: false, // we'll read the file manually
     });
     if (!result.canceled) {
       setUploading(true);
       const imageUri = result.assets[0].uri;
-      
-      // Create FormData
-      const formData = new FormData();
-      // Append file – use a string for the URI, and specify name and type in a different way
-      formData.append('file', {
-        uri: imageUri,
-        type: 'image/jpeg',
-        name: 'avatar.jpg',
+      // Read file as base64
+      const base64 = await FileSystem.readAsStringAsync(imageUri, {
+        encoding: FileSystem.EncodingType.Base64,
       });
+      const formData = new FormData();
+      formData.append('file', `data:image/jpeg;base64,${base64}`);
       formData.append('upload_preset', 'boardly_avatars');
-      
-      // Optionally, remove the folder parameter if it causes issues
-      // formData.append('folder', 'boardly_avatars');
-      
+      // Do not append folder
+
       const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
         method: 'POST',
         body: formData,
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'multipart/form-data',
-        },
       });
-      
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.error?.message || `Upload failed: ${response.status}`);
+        throw new Error(data.error?.message || `HTTP ${response.status}`);
       }
-      
       const imageUrl = data.secure_url;
       await api.put('/user/profile', { avatar: imageUrl });
       updateUser({ ...user, avatar: imageUrl });
@@ -71,6 +62,9 @@ export default function ProfileScreen() {
     setUploading(false);
   }
 };
+
+
+
   const saveProfile = async () => {
     try {
       const response = await api.put('/user/profile', { name, phone });
