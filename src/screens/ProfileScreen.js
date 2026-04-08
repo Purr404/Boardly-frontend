@@ -4,9 +4,9 @@ import { useAuth } from '../context/AuthContext';
 import * as ImagePicker from 'expo-image-picker';
 import api from '../services/api';
 
-// Cloudinary configuration
-const CLOUD_NAME = 'dpqplua14';
-const UPLOAD_PRESET = 'boardly_avatars'; 
+// Cloudinary configuration – verify these values in your account
+const CLOUD_NAME = 'dpqplua14';       // Your cloud name (as shown in Cloudinary dashboard)
+const UPLOAD_PRESET = 'boardly_avatars'; // Unsigned upload preset name
 
 export default function ProfileScreen() {
   const { user, updateUser, logout } = useAuth();
@@ -17,57 +17,60 @@ export default function ProfileScreen() {
   const [uploading, setUploading] = useState(false);
 
   const pickImage = async () => {
-  try {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Permission needed', 'Please allow access to your photos');
-      return;
-    }
-    const result = await ImagePicker.launchImageLibraryAsync({
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.8,
-    });
-    if (!result.canceled) {
-      setUploading(true);
-      const imageUri = result.assets[0].uri;
-      
-      // Get the file extension and MIME type
-      const filename = imageUri.split('/').pop();
-      const match = /\.(\w+)$/.exec(filename);
-      const type = match ? `image/${match[1]}` : 'image/jpeg';
-      
-      const formData = new FormData();
-      // Append file as an object
-      formData.append('file', {
-        uri: imageUri,
-        name: filename,
-        type: type,
-      });
-      formData.append('upload_preset', 'boardly_avatars');
-      
-      const response = await fetch(`https://api.cloudinary.com/v1_1/dpqplua14/image/upload`, {
-        method: 'POST',
-        body: formData,
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error?.message || `HTTP ${response.status}`);
+    try {
+      // Request permission
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission needed', 'Please allow access to your photos');
+        return;
       }
-      const imageUrl = data.secure_url;
-      await api.put('/user/profile', { avatar: imageUrl });
-      updateUser({ ...user, avatar: imageUrl });
-      setAvatar(imageUrl);
-      Alert.alert('Success', 'Profile picture updated');
+
+      // Launch image picker (no mediaTypes to avoid native crash)
+      const result = await ImagePicker.launchImageLibraryAsync({
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      if (!result.canceled) {
+        setUploading(true);
+        const imageUri = result.assets[0].uri;
+
+        // Prepare FormData for Cloudinary
+        const formData = new FormData();
+        // React Native requires an object with uri, name, type
+        formData.append('file', {
+          uri: imageUri,
+          type: 'image/jpeg',
+          name: 'avatar.jpg',
+        });
+        formData.append('upload_preset', UPLOAD_PRESET);
+
+        // Upload to Cloudinary
+        const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
+          method: 'POST',
+          body: formData,
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.error?.message || `Upload failed: ${response.status}`);
+        }
+
+        const imageUrl = data.secure_url;
+
+        // Save avatar URL to backend
+        await api.put('/user/profile', { avatar: imageUrl });
+        updateUser({ ...user, avatar: imageUrl });
+        setAvatar(imageUrl);
+        Alert.alert('Success', 'Profile picture updated');
+      }
+    } catch (error) {
+      Alert.alert('Upload Error', error.message);
+    } finally {
+      setUploading(false);
     }
-  } catch (error) {
-    Alert.alert('Upload Error', error.message);
-  } finally {
-    setUploading(false);
-  }
-};
-
-
+  };
 
   const saveProfile = async () => {
     try {
