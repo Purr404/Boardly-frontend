@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
 import HomeScreen from '../screens/HomeScreen';
+import InboxScreen from '../screens/InboxScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -14,6 +15,7 @@ function MainTabs() {
   return (
     <Tab.Navigator>
       <Tab.Screen name="Home" component={HomeScreen} />
+      <Tab.Screen name="Inbox" component={InboxScreen} />
     </Tab.Navigator>
   );
 }
@@ -31,9 +33,7 @@ export default function AppNavigator() {
           <Stack.Screen name="Register" component={RegisterScreen} />
         </>
       ) : (
-        <>
-          <Stack.Screen name="Main" component={MainTabs} options={{ headerShown: false }} />
-        </>
+        <Stack.Screen name="Main" component={MainTabs} options={{ headerShown: false }} />
       )}
     </Stack.Navigator>
   );
