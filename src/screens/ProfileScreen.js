@@ -17,52 +17,54 @@ export default function ProfileScreen() {
   const [uploading, setUploading] = useState(false);
 
   const pickImage = async () => {
-    try {
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert('Permission needed', 'Please allow access to your photos');
-        return;
-      }
-      const result = await ImagePicker.launchImageLibraryAsync({
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 0.8,
-      });
-      if (!result.canceled) {
-        setUploading(true);
-        const imageUri = result.assets[0].uri;
-        const formData = new FormData();
-        // @ts-ignore - React Native supports this format
-        formData.append('file', {
-          uri: imageUri,
-          type: 'image/jpeg',
-          name: 'avatar.jpg',
-        });
-        formData.append('upload_preset', UPLOAD_PRESET);
-        formData.append('folder', 'boardly_avatars');
-
-        const cloudinaryResponse = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
-          method: 'POST',
-          body: formData,
-        });
-        const cloudinaryData = await cloudinaryResponse.json();
-        if (!cloudinaryResponse.ok) {
-          throw new Error(cloudinaryData.error?.message || 'Cloudinary upload failed');
-        }
-        const imageUrl = cloudinaryData.secure_url;
-
-        await api.put('/user/profile', { avatar: imageUrl });
-        updateUser({ ...user, avatar: imageUrl });
-        setAvatar(imageUrl);
-        Alert.alert('Success', 'Profile picture updated');
-      }
-    } catch (error) {
-      Alert.alert('Error', error.message);
-    } finally {
-      setUploading(false);
+  try {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission needed', 'Please allow access to your photos');
+      return;
     }
-  };
+    const result = await ImagePicker.launchImageLibraryAsync({
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+    if (!result.canceled) {
+      setUploading(true);
+      const imageUri = result.assets[0].uri;
+      const formData = new FormData();
+      // @ts-ignore
+      formData.append('file', {
+        uri: imageUri,
+        type: 'image/jpeg',
+        name: 'avatar.jpg',
+      });
+      formData.append('upload_preset', 'boardly_avatars');
+      
+      // Replace with your actual cloud name
+      const cloudName = 'dpqplua14'; // e.g., 'd9y2s8m5'
+      const url = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
+      
+      const cloudinaryResponse = await fetch(url, {
+        method: 'POST',
+        body: formData,
+      });
+      const cloudinaryData = await cloudinaryResponse.json();
+      if (!cloudinaryResponse.ok) {
+        throw new Error(cloudinaryData.error?.message || `HTTP ${cloudinaryResponse.status}`);
+      }
+      const imageUrl = cloudinaryData.secure_url;
 
+      await api.put('/user/profile', { avatar: imageUrl });
+      updateUser({ ...user, avatar: imageUrl });
+      setAvatar(imageUrl);
+      Alert.alert('Success', 'Profile picture updated');
+    }
+  } catch (error) {
+    Alert.alert('Upload Error', error.message);
+  } finally {
+    setUploading(false);
+  }
+};
   const saveProfile = async () => {
     try {
       const response = await api.put('/user/profile', { name, phone });
