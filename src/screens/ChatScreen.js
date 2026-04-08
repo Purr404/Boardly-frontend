@@ -15,7 +15,6 @@ export default function ChatScreen({ route }) {
       const response = await api.get(`/messages/${conversationId}`);
       setMessages(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
-      console.error(error);
       setMessages([]);
     }
   };
@@ -33,7 +32,7 @@ export default function ChatScreen({ route }) {
 
   useEffect(() => {
     fetchMessages();
-    const interval = setInterval(fetchMessages, 3000); // Poll for new messages every 3s
+    const interval = setInterval(fetchMessages, 3000);
     return () => clearInterval(interval);
   }, []);
 
