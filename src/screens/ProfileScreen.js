@@ -5,6 +5,7 @@ import * as ImagePicker from 'expo-image-picker';
 
 export default function ProfileScreen() {
   const { user, logout } = useAuth();
+  const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(user?.name || '');
   const [phone, setPhone] = useState(user?.email?.replace('@phone.boardly', '') || '');
   const [avatar, setAvatar] = useState(null);
@@ -19,7 +20,7 @@ export default function ProfileScreen() {
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [1, 1],
-      quality: 1,
+      quality: 0.8,
     });
     if (!result.canceled) {
       setAvatar(result.assets[0].uri);
@@ -27,8 +28,16 @@ export default function ProfileScreen() {
   };
 
   const saveProfile = () => {
-    // TODO: Call API to update name, phone, avatar
+    // TODO: Send updated name, phone, avatar to backend
     Alert.alert('Success', 'Profile updated (demo)');
+    setIsEditing(false);
+  };
+
+  const cancelEdit = () => {
+    setName(user?.name || '');
+    setPhone(user?.email?.replace('@phone.boardly', '') || '');
+    setAvatar(null);
+    setIsEditing(false);
   };
 
   return (
@@ -44,23 +53,45 @@ export default function ProfileScreen() {
         <Text style={styles.changePhotoText}>Change Photo</Text>
       </TouchableOpacity>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Name"
-        value={name}
-        onChangeText={setName}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Phone"
-        value={phone}
-        onChangeText={setPhone}
-        keyboardType="phone-pad"
-      />
-
-      <TouchableOpacity style={styles.button} onPress={saveProfile}>
-        <Text style={styles.buttonText}>Save Changes</Text>
-      </TouchableOpacity>
+      {!isEditing ? (
+        <>
+          <View style={styles.infoRow}>
+            <Text style={styles.label}>Name:</Text>
+            <Text style={styles.value}>{user?.name}</Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Text style={styles.label}>Phone:</Text>
+            <Text style={styles.value}>{phone}</Text>
+          </View>
+          <TouchableOpacity style={styles.editButton} onPress={() => setIsEditing(true)}>
+            <Text style={styles.buttonText}>Edit Profile</Text>
+          </TouchableOpacity>
+        </>
+      ) : (
+        <>
+          <TextInput
+            style={styles.input}
+            placeholder="Name"
+            value={name}
+            onChangeText={setName}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Phone"
+            value={phone}
+            onChangeText={setPhone}
+            keyboardType="phone-pad"
+          />
+          <View style={styles.buttonRow}>
+            <TouchableOpacity style={styles.saveButton} onPress={saveProfile}>
+              <Text style={styles.buttonText}>Save Changes</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.cancelButton} onPress={cancelEdit}>
+              <Text style={styles.buttonText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </>
+      )}
 
       <TouchableOpacity style={styles.logoutButton} onPress={logout}>
         <Text style={styles.logoutText}>Logout</Text>
@@ -76,9 +107,15 @@ const styles = StyleSheet.create({
   avatarPlaceholder: { width: 100, height: 100, borderRadius: 50, backgroundColor: '#4CAF50', justifyContent: 'center', alignItems: 'center' },
   avatarText: { fontSize: 40, color: 'white', fontWeight: 'bold' },
   changePhotoText: { marginTop: 8, color: '#4CAF50' },
+  infoRow: { flexDirection: 'row', marginBottom: 16, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#eee' },
+  label: { fontWeight: 'bold', width: 80, fontSize: 16 },
+  value: { flex: 1, fontSize: 16, color: '#333' },
+  editButton: { backgroundColor: '#2196F3', padding: 12, borderRadius: 8, alignItems: 'center', marginTop: 8 },
   input: { borderWidth: 1, borderColor: '#ddd', borderRadius: 25, padding: 12, marginBottom: 16, fontSize: 16 },
-  button: { backgroundColor: '#4CAF50', borderRadius: 25, padding: 14, alignItems: 'center', marginTop: 8 },
-  buttonText: { color: 'white', fontWeight: 'bold', fontSize: 16 },
+  buttonRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 },
+  saveButton: { backgroundColor: '#4CAF50', padding: 12, borderRadius: 8, flex: 0.48, alignItems: 'center' },
+  cancelButton: { backgroundColor: '#f44336', padding: 12, borderRadius: 8, flex: 0.48, alignItems: 'center' },
+  buttonText: { color: 'white', fontWeight: 'bold' },
   logoutButton: { marginTop: 30, alignItems: 'center' },
   logoutText: { color: '#f44336', fontSize: 16 },
 });
