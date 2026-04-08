@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import SafeFlatList from '../components/SafeFlatList';
 
 export default function ChatScreen({ route }) {
   const { conversationId, name } = route.params;
@@ -34,15 +33,16 @@ export default function ChatScreen({ route }) {
 
   useEffect(() => {
     fetchMessages();
-    const interval = setInterval(fetchMessages, 3000);
+    const interval = setInterval(fetchMessages, 3000); // Poll for new messages every 3s
     return () => clearInterval(interval);
   }, []);
 
   return (
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <SafeFlatList
+      <FlatList
         ref={flatListRef}
         data={messages}
+        keyExtractor={(item, index) => (item?.id ? item.id.toString() : index.toString())}
         renderItem={({ item }) => {
           const isSent = item.senderId === user?.id;
           return (
