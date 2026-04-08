@@ -1,14 +1,20 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image, ActivityIndicator } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import * as ImagePicker from 'expo-image-picker';
+import api from '../services/api';
+
+// Cloudinary configuration – replace with your own
+const CLOUD_NAME = 'YOUR_CLOUD_NAME';        // e.g., 'dfabc1234'
+const UPLOAD_PRESET = 'boardly_avatars';     // unsigned preset you created
 
 export default function ProfileScreen() {
-  const { user, logout } = useAuth();
+  const { user, updateUser, logout } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(user?.name || '');
   const [phone, setPhone] = useState(user?.email?.replace('@phone.boardly', '') || '');
-  const [avatar, setAvatar] = useState(null);
+  const [avatar, setAvatar] = useState(user?.avatar || null);
+  const [uploading, setUploading] = useState(false);
 
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -23,27 +29,64 @@ export default function ProfileScreen() {
       quality: 0.8,
     });
     if (!result.canceled) {
-      setAvatar(result.assets[0].uri);
+      setUploading(true);
+      try {
+        // Upload to Cloudinary
+        const imageUri = result.assets[0].uri;
+        const formData = new FormData();
+        formData.append('file', {
+          uri: imageUri,
+          type: 'image/jpeg',
+          name: 'avatar.jpg',
+        });
+        formData.append('upload_preset', UPLOAD_PRESET);
+        formData.append('folder', 'boardly_avatars');
+
+        const cloudinaryResponse = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
+          method: 'POST',
+          body: formData,
+        });
+        const cloudinaryData = await cloudinaryResponse.json();
+        const imageUrl = cloudinaryData.secure_url;
+
+        // Save avatar URL to backend
+        await api.put('/user/profile', { avatar: imageUrl });
+        // Update context and local state
+        updateUser({ ...user, avatar: imageUrl });
+        setAvatar(imageUrl);
+        Alert.alert('Success', 'Profile picture updated');
+      } catch (error) {
+        console.error(error);
+        Alert.alert('Error', 'Failed to upload image');
+      } finally {
+        setUploading(false);
+      }
     }
   };
 
-  const saveProfile = () => {
-    // TODO: Send updated name, phone, avatar to backend
-    Alert.alert('Success', 'Profile updated (demo)');
-    setIsEditing(false);
+  const saveProfile = async () => {
+    try {
+      const response = await api.put('/user/profile', { name, phone });
+      updateUser(response.data.user);
+      Alert.alert('Success', 'Profile updated');
+      setIsEditing(false);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to update profile');
+    }
   };
 
   const cancelEdit = () => {
     setName(user?.name || '');
     setPhone(user?.email?.replace('@phone.boardly', '') || '');
-    setAvatar(null);
     setIsEditing(false);
   };
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity onPress={pickImage} style={styles.avatarContainer}>
-        {avatar ? (
+      <TouchableOpacity onPress={pickImage} style={styles.avatarContainer} disabled={uploading}>
+        {uploading ? (
+          <ActivityIndicator size="large" color="#4CAF50" />
+        ) : avatar ? (
           <Image source={{ uri: avatar }} style={styles.avatar} />
         ) : (
           <View style={styles.avatarPlaceholder}>
