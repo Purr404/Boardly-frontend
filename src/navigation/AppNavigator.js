@@ -8,7 +8,7 @@ import RegisterScreen from '../screens/RegisterScreen';
 import HomeScreen from '../screens/HomeScreen';
 import InboxScreen from '../screens/InboxScreen';
 import ProfileScreen from '../screens/ProfileScreen';
-import ChatScreen from '../screens/ChatScreen';  // <-- Import ChatScreen
+import ChatScreen from '../screens/ChatScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -38,7 +38,7 @@ export default function AppNavigator() {
       ) : (
         <>
           <Stack.Screen name="Main" component={MainTabs} options={{ headerShown: false }} />
-          <Stack.Screen name="Chat" component={ChatScreen} />   // <-- Add ChatScreen here
+          <Stack.Screen name="Chat" component={ChatScreen} />
         </>
       )}
     </Stack.Navigator>
